@@ -38,10 +38,10 @@ while running:
         elif event.type == pygame.KEYDOWN:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_m]:
-                print('ada')
                 map_params['l'] = ls[ls.index(map_params['l']) - 1]
                 repaint_map()
                 screen.blit(pygame.image.load(map_file), (0, 0))
+    pygame.display.flip()
 pygame.quit()
 
 # Удаляем за собой файл с изображением.
