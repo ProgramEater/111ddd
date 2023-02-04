@@ -19,7 +19,6 @@ class MyWidget(QMainWindow):
     def search(self):
         global NAME
         NAME = self.search_lineEdit.text()
-        print(NAME)
         self.search_lineEdit.clear()
 
 

@@ -4,6 +4,8 @@ import sys
 import pygame
 import requests
 
+from WINDOW import MyWidget
+
 
 def repaint_map():
     response = requests.get(map_api_server, params=map_params)
@@ -33,9 +35,13 @@ pygame.display.flip()
 
 coords_shift = 0.01
 shift_scale = 0.5
+NAME = ''
 
 running = True
 while running:
+    ex = MyWidget()
+    ex.show()
+    print(NAME)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
