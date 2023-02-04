@@ -42,6 +42,7 @@ while running:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_m]:
                 map_params['l'] = ls[ls.index(map_params['l']) - 1]
+            
             if keys[pygame.K_LEFT]:
                 x, y = [float(i) for i in map_params['ll'].split(',')]
                 map_params['ll'] = ','.join((str(x - coords_shift), str(y)))
@@ -54,6 +55,17 @@ while running:
             elif keys[pygame.K_DOWN]:
                 x, y = [float(i) for i in map_params['ll'].split(',')]
                 map_params['ll'] = ','.join((str(x), str(y - coords_shift)))
+            
+            elif keys[pygame.K_PAGEDOWN]:
+                mp = float(map_params["spn"].split(',')[0]) * 0.5
+                map_params['spn'] = str(mp) + ',' + str(mp)
+                repaint_map()
+                screen.blit(pygame.image.load(map_file), (0, 0))
+            elif keys[pygame.K_PAGEUP]:
+                mp = float(map_params["spn"].split(',')[0]) * 2
+                map_params['spn'] = str(mp) + ',' + str(mp)
+                repaint_map()
+                screen.blit(pygame.image.load(map_file), (0, 0))
             repaint_map()
             screen.blit(pygame.image.load(map_file), (0, 0))
     pygame.display.flip()
