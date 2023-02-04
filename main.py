@@ -29,6 +29,9 @@ screen = pygame.display.set_mode((450, 450))
 screen.blit(pygame.image.load(map_file), (0, 0))
 # Переключаем экран и ждем закрытия окна.
 pygame.display.flip()
+
+coords_shift = 0.01
+
 running = True
 while running:
     for event in pygame.event.get():
@@ -39,8 +42,20 @@ while running:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_m]:
                 map_params['l'] = ls[ls.index(map_params['l']) - 1]
-                repaint_map()
-                screen.blit(pygame.image.load(map_file), (0, 0))
+            
+            if keys[pygame.K_LEFT]:
+                x, y = [float(i) for i in map_params['ll'].split(',')]
+                map_params['ll'] = ','.join((str(x - coords_shift), str(y)))
+            elif keys[pygame.K_RIGHT]:
+                x, y = [float(i) for i in map_params['ll'].split(',')]
+                map_params['ll'] = ','.join((str(x + coords_shift), str(y)))
+            elif keys[pygame.K_UP]:
+                x, y = [float(i) for i in map_params['ll'].split(',')]
+                map_params['ll'] = ','.join((str(x), str(y + coords_shift)))
+            elif keys[pygame.K_DOWN]:
+                x, y = [float(i) for i in map_params['ll'].split(',')]
+                map_params['ll'] = ','.join((str(x), str(y - coords_shift)))
+            
             elif keys[pygame.K_PAGEDOWN]:
                 mp = float(map_params["spn"].split(',')[0]) * 0.5
                 map_params['spn'] = str(mp) + ',' + str(mp)
@@ -51,6 +66,8 @@ while running:
                 map_params['spn'] = str(mp) + ',' + str(mp)
                 repaint_map()
                 screen.blit(pygame.image.load(map_file), (0, 0))
+            repaint_map()
+            screen.blit(pygame.image.load(map_file), (0, 0))
     pygame.display.flip()
 pygame.quit()
 
