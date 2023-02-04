@@ -41,6 +41,16 @@ while running:
                 map_params['l'] = ls[ls.index(map_params['l']) - 1]
                 repaint_map()
                 screen.blit(pygame.image.load(map_file), (0, 0))
+            elif keys[pygame.K_PAGEDOWN]:
+                mp = float(map_params["spn"].split(',')[0]) * 0.5
+                map_params['spn'] = str(mp) + ',' + str(mp)
+                repaint_map()
+                screen.blit(pygame.image.load(map_file), (0, 0))
+            elif keys[pygame.K_PAGEUP]:
+                mp = float(map_params["spn"].split(',')[0]) * 2
+                map_params['spn'] = str(mp) + ',' + str(mp)
+                repaint_map()
+                screen.blit(pygame.image.load(map_file), (0, 0))
     pygame.display.flip()
 pygame.quit()
 
