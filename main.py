@@ -8,27 +8,31 @@ from addressFind import find_coords_with_address
 
 
 class LineEdit(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, x, y, edit_enabled, font_size):
         super(LineEdit, self).__init__(line_edit_group)
-        self.font = pygame.font.SysFont('Comic Sans MS', 20)
-        self.text = 'aaa'
+        self.edit_enabled = edit_enabled
+        self.font = pygame.font.SysFont('Comic Sans MS', font_size)
+        self.text = ''
+        self.text2 = ''
         self.image = pygame.surface.Surface((400, 30))
-        self.rect = pygame.rect.Rect(10, 10, *self.image.get_size())
-        self.text_img = self.font.render(self.text, True, 'black')
+        self.rect = pygame.rect.Rect(x, y, *self.image.get_size())
 
     def update(self):
         self.text_img = self.font.render(self.text, True, 'black')
+        self.text_img2 = self.font.render(self.text2, True, 'black')
         self.image.fill('white')
-        if editing:
+        if editing and self.edit_enabled:
             self.image.fill('black')
             self.image.fill('white', (1, 1, self.rect.w - 2, self.rect.h - 2))
         self.image.blit(self.text_img, (10, 0))
+        self.image.blit(self.text_img2, (10, 10))
 
 
 def repaint_map():
     response = requests.get(map_api_server, params=map_params)
-    with open(map_file, "wb") as file:
-        file.write(response.content)
+    if response:
+        with open(map_file, "wb") as file:
+            file.write(response.content)
 
 
 map_api_server = "http://static-maps.yandex.ru/1.x/"
@@ -57,12 +61,25 @@ shift_scale = 0.5
 NAME = ''
 
 line_edit_group = pygame.sprite.Group()
-address_line = LineEdit()
+address_line = LineEdit(10, 10, True, 20)
+address_show_line = LineEdit(10, 410, False, 10)
 
-button = pygame.sprite.Sprite(line_edit_group)
-button.image = pygame.surface.Surface((30, 30))
-button.image.fill('red')
-button.rect = pygame.rect.Rect(400, 10, *button.image.get_size())
+# buttons
+if True:
+    button = pygame.sprite.Sprite(line_edit_group)
+    button.image = pygame.surface.Surface((30, 30))
+    button.image.fill('green')
+    button.rect = pygame.rect.Rect(400, 10, *button.image.get_size())
+
+    button_reset = pygame.sprite.Sprite(line_edit_group)
+    button_reset.image = pygame.surface.Surface((30, 30))
+    button_reset.image.fill('red')
+    button_reset.rect = pygame.rect.Rect(400, 410, *button_reset.image.get_size())
+
+    button_ind = pygame.sprite.Sprite(line_edit_group)
+    button_ind.image = pygame.surface.Surface((30, 30))
+    button_ind.image.fill('blue')
+    button_ind.rect = pygame.rect.Rect(400, 370, *button_ind.image.get_size())
 
 editing = False
 alphabet_corr = 'fа,бdвuгlдtе`ё;жpзbиrкkлvмyнjоgпhрcсnтeуaф[хwцxчiшoщ]ъsыmь\'э.юzя'
@@ -71,12 +88,15 @@ alphabet = 'r'
 running = True
 while running:
     for event in pygame.event.get():
+        # pygame quit
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+        # KEYBOARD KEY DOWN
         elif event.type == pygame.KEYDOWN:
             keys = pygame.key.get_pressed()
             if not editing:
+                # NAVIGATING ON MAP IF NOT WRITING LOCATION
                 if keys[pygame.K_m]:
                     map_params['l'] = ls[ls.index(map_params['l']) - 1]
 
@@ -104,6 +124,7 @@ while running:
                 repaint_map()
                 screen.blit(pygame.image.load(map_file), (0, 0))
             else:
+                # НАЙТИ ВВЕДЕННУЮ ЛОКАЦИЮ
                 key = pygame.key.name(event.key)
                 if key == 'left alt':
                     alphabet = 'r' if alphabet == 'a' else 'a'
@@ -120,22 +141,47 @@ while running:
                     address_line.text = address_line.text[:-1]
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
+            # Если нажали на строку, то можно писать
             if address_line.rect.collidepoint(*event.pos):
                 editing = True
+            # Если нажали не на строку то прекращаем редактировать
             else:
                 editing = False
+            # Если нажали на кнопку, то ищем
             if button.rect.collidepoint(*event.pos):
-                low_cor, up_cor = find_coords_with_address(address_line.text)['boundedBy']['Envelope'].values()
-                coords = find_coords_with_address(address_line.text)['Point']['pos'].split()
+                toponym = find_coords_with_address(address_line.text)
+                if toponym is not None:
+                    low_cor, up_cor = toponym['boundedBy']['Envelope'].values()
+                    coords = find_coords_with_address(address_line.text)['Point']['pos'].split()
 
-                map_params['ll'] = ','.join(coords)
-                map_params['pt'] = ','.join((*coords, 'pm2wtm1'))
-                print(','.join((*coords, 'pm2wtm1')))
-                spn = str(abs(float(low_cor.split()[0]) - float(up_cor.split()[0])))
-                map_params['spn'] = ','.join((spn, spn))
+                    map_params['ll'] = ','.join(coords)
+                    map_params['pt'] = ','.join((*coords, 'pm2wtm1'))
+                    spn = str(abs(float(low_cor.split()[0]) - float(up_cor.split()[0])))
+                    map_params['spn'] = ','.join((spn, spn))
 
+                    # address show
+                    address_label = ' '.join([i['name'] for i in
+                                              toponym['metaDataProperty']['GeocoderMetaData']
+                                              ['Address']['Components']])
+
+                    address_show_line.text = address_label
+
+                    repaint_map()
+                    screen.blit(pygame.image.load(map_file), (0, 0))
+            # BUTTON RESET
+            if button_reset.rect.collidepoint(*event.pos):
+                address_show_line.text = ''
+                address_show_line.text2 = ''
+                map_params['pt'] = None
                 repaint_map()
                 screen.blit(pygame.image.load(map_file), (0, 0))
+            # BUTTON TO SHOW POSTAL CODE
+            if button_ind.rect.collidepoint(*event.pos):
+                if not address_show_line.text2 and address_show_line.text:
+                    address_show_line.text2 = toponym['metaDataProperty']['GeocoderMetaData']['Address'].get(
+                        'postal_code', '')
+                elif address_show_line.text:
+                    address_show_line.text2 = ''
 
     line_edit_group.update()
     line_edit_group.draw(screen)

@@ -11,4 +11,8 @@ def find_coords_with_address(address):
 
     # Выполняем запрос.
     response = requests.get(geocoder_api_server, params=geo_params)
-    return response.json()["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]
+    if int(response.json()['response']['GeoObjectCollection']['metaDataProperty']
+           ['GeocoderResponseMetaData']['found']) != 0:
+        return response.json()["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]
+    else:
+        return None
